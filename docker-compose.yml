@@ -1,0 +1,44 @@
+version: '3.1'
+
+services:
+
+  db:
+    build: ./postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: admin
+    ports:
+     - 5432:5432
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  
+  backend:
+    image: python:3
+    command: sh -c "pip install -r requirements.txt &&flask run --host=0.0.0.0"
+    environment:
+      - FLASK_APP=src/app
+      - FLASK_ENV=development
+    ports:
+      - 5000:5000
+    working_dir: /root/backend
+    volumes:
+      - ./backend:/root/backend:cached # <--- This will map ./py1 to /root/py1 inside the container.
+  
+  frontend:
+    build: ./frontend
+    command: npm start
+    volumes:
+      - './frontend:/app/'
+      - '/app/node_modules'
+    ports:
+      - 3000:3000
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    
+
+
